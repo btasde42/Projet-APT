@@ -44,27 +44,30 @@ def score_eng(corpus):
 
 def distance_edition(ph1,ph2):
 	"""la fonction qui calcule la distance d'édition entre deux phrases en forme d'un tableau """
-	len_ph1=len(ph1)+1
-	len_ph2=len(ph2)+1 #on prend les long des phrases pour créer le table
-	table=np.zeros((len_ph1,len_ph2)) #on crée une table avec les zéros dedans
+	len_ph1=len(ph1)
+	len_ph2=len(ph2) #on prend les long des phrases pour créer le table
+	len_sum=float(len(ph1)+len(ph2))
+	table=[] 
 
-	for i in range(len_ph1): #on met tout d'abord indice pour chaque chr
-		table[i,0]=i
-	for j in range(len_ph2):
-		table[0,j]=j
+	for i in range(len_ph1+1): #on met tout d'abord indice pour chaque chr
+		table.append([i])
+	del table[0][0]
+	for j in range(len_ph2+1):
+		table[0].append(j)
 
-	for x in range(1,len_ph1): #on a deux boucles pour comparer deux phrases chr par chr
-		for y in range(1,len_ph2):
+	for y in range(1,len_ph2+1): #on a deux boucles pour comparer deux phrases chr par chr
+		for x in range(1,len_ph1+1):
 			if ph1[x-1]==ph2[y-1]: #si les chr à meme indice sont les memes:
-				table[x,y]=min(table[x-1,y]+1,table[x-1,y-1],table[x,y-1]+1)
+				table[x].insert(y,table[x-1][y-1])
 			else:
-				table[x,y]=min(table[x-1,y]+1,table[x-1,y-1]+1,table[x,y-1]+1)
-
-
-	return(table[len(ph1)-1,len(ph2)-1])
+				mini=min(table[x-1][y]+1,table[x][y-1]+1,table[x-1][y-1]+2)
+				table[x].insert(y,mini)
+	dist=table[-1][-1]
+	rat=(len_sum-dist)/len_sum
+	return rat
 
 def distance_edition_directions(corpus):
-	dict_distance=defaultdict()
+	dict_distance=defaultdict(list)
 	directions=compute_directions(corpus)
 	for i in directions.keys():
 		for elt in corpus:
@@ -188,6 +191,9 @@ def convert_scale (scores, scale):
 	prend en args la liste des scores et le "scale" (range) des scores (ex. 1 pour le score BLEU et 4 pour le score DA)"""
 	minimum = min(scores)
 	return [((x-minimum)/scale)*1 for x in scores]
+
+
+
 def main():
 	json_file="da_newstest2016.json"
 	corpus = json.load(open(json_file))
@@ -199,16 +205,52 @@ def main():
 	
 	#DISTANCE D'EDITION
 	scores=distance_edition_directions(corpus)
-	z_score=[()]
-	scaled_score=[()]
-	for k,v in scores.items():
-		z_score.append((k,to_z_score(v)))
-		scaled_score.append((k,convert_scale(v,1)))
-
-	print(z_score)
-	print(scaled_score)
-
+	valeurs=scores.values
 	
+
+
+	# TESTS de BLEU pour CORPUS
+	print("DE")
+	de_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["tgt_lang"] == "en"]
+	de_de_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["orig_lang"] == "de" and elt["tgt_lang"] == "en"]
+	de_en_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	print("Toute la direction DE : ", compute_bleu_corpus(de_en))
+	print("Direct : ", compute_bleu_corpus(de_de_en))
+	print("Indirect : ", compute_bleu_corpus(de_en_en))
+	print("CS")
+	cs_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["tgt_lang"] == "en"]
+	cs_cs_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["orig_lang"] == "cs" and elt["tgt_lang"] == "en"]
+	cs_en_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	print("Toute la direciton CS : ", compute_bleu_corpus(cs_en))
+	print("Direct : ", compute_bleu_corpus(cs_cs_en))
+	print("Indirect : ", compute_bleu_corpus(cs_en_en))
+
+	# TEST BLEU PHRASE par PHRASE
+	sentences_score_de = []
+	sentences_score_cs = []
+	sentences_score_ru = []
+	print("SENTENCE BLEU ")
+	
+
+
+	for sent in de_en:
+		hyp = sent["hyp"]
+		ref = sent["ref"]
+		sentences_score_de.append(compute_bleu_sentence(hyp, ref))
+	
+
+	score_DA_de = [elt["score"] for elt in de_en]
+	print(len(sentences_score_de))
+
+	print("DA score : ", score_DA_de[:3])
+
+	print("BLEU score : ", sentences_score_de[:3])
+	print("BLEU score to Z-SCORE : ", to_z_score(sentences_score_de[:3]))
+	print("BLEU score to new scale : ", convert_scale(sentences_score_de[:3], 1))
+	print("DA score to new scale : ", convert_scale(score_DA_de[:3], 4))
+
+
+
 if __name__ == '__main__':
 
     main()
