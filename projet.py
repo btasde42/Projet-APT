@@ -66,10 +66,15 @@ def distance_edition(ph1,ph2):
 def distance_edition_directions(corpus):
 	dict_distance=defaultdict()
 	directions=compute_directions(corpus)
-	for elt in corpus:
-		for i in directions:
-			if elt["src_lang"], elt["orig_lang"], elt["tgt_lang"]
-
+	for i in directions.keys():
+		for elt in corpus:
+			if (elt["src_lang"], elt["orig_lang"], elt["tgt_lang"])==i:
+				if i in dict_distance:
+					dict_distance[i]+=distance_edition(elt['hyp'],elt['ref'])
+				else:
+					dict_distance[i]=distance_edition(elt['hyp'],elt['ref'])
+		dict_distance[i]=dict_distance[i]/directions[i]
+	return dict_distance
 
 def length_score_impact(direction):
 	"""la fonction qui fait un plot de la dépendance du score de la longueur de la phrase
@@ -193,14 +198,17 @@ def main():
 	""" resultat:(scr:-0.22951067088406937, tgt:-0.03456279280542703)"""
 	
 	#DISTANCE D'EDITION
-	
-	"""total_dist=0
-				for i in array:
-					p1=i['hyp']
-					p2=i['ref']
-					total_dist+=distance_edition(p1,p2)"""
-	
+	scores=distance_edition_directions(corpus)
+	z_score=[()]
+	scaled_score=[()]
+	for k,v in scores.items():
+		z_score.append((k,to_z_score(v)))
+		scaled_score.append((k,convert_scale(v,1)))
 
+	print(z_score)
+	print(scaled_score)
+
+	
 if __name__ == '__main__':
 
     main()
