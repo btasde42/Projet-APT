@@ -259,11 +259,10 @@ def compare_methode_phrase(corpus):
 		direction_score_DA_scale[k]=convert_scale(v,1)
 
 
-
-
 def compare_methode_corpus(corpus):
 	"""la fonction pour la comparaison entre Bleu score et la distance d'édition au niveu des directions entieres
 	"""
+	list_DA_corpus=[]
 	list_bleu_corpus=[]
 	list_DIST_corpus=[]
 
@@ -271,6 +270,8 @@ def compare_methode_corpus(corpus):
 	list_DIST_corpus_z=[]
 	list_bleu_corpus_scale=[]
 	list_DIST_corpus_scale=[]
+	list_DA_corpus_z=[]
+	list_DA_corpus_scale=[]
 
 	scores_z=[]
 	scores_scale=[]
@@ -279,27 +280,40 @@ def compare_methode_corpus(corpus):
 
 	for i in get_directions(corpus):
 		list_bleu_corpus.append([(i[0]["src_lang"],i[0]["orig_lang"],i[0]["tgt_lang"]),compute_bleu_corpus(i)])
-		
+		list_DA_corpus.append([(i[0]["src_lang"],i[0]["orig_lang"],i[0]["tgt_lang"]),sum([j['score'] for j in i])/len(i)]) #on calcule la moyenne des scores de DA pour chaque direction 
+
 	list_bleu_corpus=sorted(list_bleu_corpus,key=lambda x: x[0]) #on enumere les deux listes pour qu'ils soient alignés
 	list_DIST_corpus=sorted(list_DIST_corpus,key=lambda x: x[0])
+	list_DA_corpus=sorted(list_DA_corpus,key=lambda x: x[0])
 	
 	for i in range(len(list_bleu_corpus)): #calcule des scores ajoustés
 		list_bleu_corpus_z=to_z_score([i[1] for i in list_bleu_corpus])
 		list_DIST_corpus_z=to_z_score([i[1] for i in list_DIST_corpus])
+		list_DA_corpus_z=to_z_score([i[1] for i in list_DA_corpus])
+
 		list_bleu_corpus_scale=convert_scale([i[1] for i in list_bleu_corpus],1)
 		list_DIST_corpus_scale=convert_scale([i[1] for i in list_DIST_corpus],1)
+		list_DA_corpus_scale=convert_scale([i[1] for i in list_DA_corpus],1)
+
+	scores_z=list(zip(sorted(compute_directions (corpus).keys()),list_DA_corpus_z,list_bleu_corpus_z,list_DIST_corpus_z)) #on assemble les noms de directions et les deux scores de direction
+	scores_scale=list(zip(sorted(compute_directions (corpus).keys()),list_DA_corpus_scale,list_bleu_corpus_scale,list_DIST_corpus_scale))
 
 	
-	scores_z=list(zip(sorted(compute_directions (corpus).keys()),list_bleu_corpus_z,list_DIST_corpus_z)) #on assemble les noms de directions et les deux scores de direction
-	scores_scale=list(zip(sorted(compute_directions (corpus).keys()),list_bleu_corpus_scale,list_DIST_corpus_scale))
+	columns=sorted(compute_directions (corpus).keys())
 
-	columns=
-	df2 = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+	#df1 = pd.DataFrame({'DA':list_DA_corpus_z,'Bleu':list_bleu_corpus_z,'Distance_edit':list_DIST_corpus_z}, index=columns)
+	#ax=df1.plot.bar(rot=0);
+	#plt.show()
+
+	df2 = pd.DataFrame({'DA':list_DA_corpus_scale,'Bleu':list_bleu_corpus_scale,'Distance_edit':list_DIST_corpus_scale}, index=columns)
+	ax=df2.plot.bar(rot=0);
+	plt.show()
+
 
 def main():
 	json_file="da_newstest2016.json"
 	corpus = json.load(open(json_file))
-	print(compare_methode_corpus(corpus))
+	compare_methode_corpus(corpus)
 	
 	#SCORE ENG
 
