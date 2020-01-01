@@ -20,6 +20,23 @@ def compute_directions (corpus):
 		dico[elt["src_lang"], elt["orig_lang"], elt["tgt_lang"]] +=1
 	return dico
 
+def get_directions (corpus):
+	de_de_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["orig_lang"] == "de" and elt["tgt_lang"] == "en"]
+	de_en_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	cs_cs_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["orig_lang"] == "cs" and elt["tgt_lang"] == "en"]
+	cs_en_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	tr_en_en = [elt for elt in corpus if elt["src_lang"] == "tr" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	tr_tr_en = [elt for elt in corpus if elt["src_lang"] == "tr" and elt["orig_lang"] == "tr" and elt["tgt_lang"] == "en"]
+	ro_ro_en = [elt for elt in corpus if elt["src_lang"] == "ro" and elt["orig_lang"] == "ro" and elt["tgt_lang"] == "en"]
+	ro_en_en = [elt for elt in corpus if elt["src_lang"] == "ro" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	ru_en_en = [elt for elt in corpus if elt["src_lang"] == "ru" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	ru_ru_en = [elt for elt in corpus if elt["src_lang"] == "ru" and elt["orig_lang"] == "ru" and elt["tgt_lang"] == "en"]
+	fi_fi_en = [elt for elt in corpus if elt["src_lang"] == "fi" and elt["orig_lang"] == "fi" and elt["tgt_lang"] == "en"]
+	fi_en_en = [elt for elt in corpus if elt["src_lang"] == "fi" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	en_ru_ru = [elt for elt in corpus if elt["src_lang"] == "en" and elt["orig_lang"] == "ru" and elt["tgt_lang"] == "ru"]
+	en_en_ru = [elt for elt in corpus if elt["src_lang"] == "en" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "ru"]
+	return [de_de_en, de_en_en, cs_cs_en, cs_en_en, tr_tr_en, tr_en_en, ro_ro_en, ro_en_en, ru_ru_en, ru_en_en, fi_fi_en, fi_en_en, en_ru_ru,en_en_ru]
+
 def direct(corpus):
 	"""la fonction qui renvoie la liste des phrases issues de la traduction directe"""
 	return [elt for elt in corpus if elt["src_lang"] == elt["orig_lang"]]
@@ -67,6 +84,10 @@ def distance_edition(ph1,ph2):
 	return rat
 
 def distance_edition_directions(corpus):
+	"""
+	separe direct-indirect
+	conserver le pair de langue concerné
+	"""
 	dict_distance=defaultdict(list)
 	directions=compute_directions(corpus)
 	for i in directions.keys():
@@ -181,7 +202,10 @@ def compute_bleu_corpus(corpus) : # la dernière version; MAIS le résultat ne c
 def to_z_score (scores):
 	"""la fonction qui transforme les scores DA ou BLEU en z-scores pour comparer ensuite aux scores BLEU
 	cela fonctionne pour une direction
-	prend en arguments une liste de scores pour une direction"""
+	prend en arguments une liste de scores pour une direction
+	ARGS:
+		scores:list
+	"""
 	mean = statistics.mean(scores)
 	standart_dev = statistics.stdev(scores)
 	return [(score - mean)/standart_dev for score in scores]
@@ -192,62 +216,93 @@ def convert_scale (scores, scale):
 	minimum = min(scores)
 	return [((x-minimum)/scale)*1 for x in scores]
 
+def compare_methode_phrase(corpus):
+	"""la fonction pour la comparaison entre Bleu score et la distance d'édition au niveu de phrase
+	"""
+	sentences_score_bleu=[]
+	sentences_score_DIST=[]
+	direction_score_bleu={}
+	direction_score_bleu_z={}
+	direction_score_bleu_scale={}
 
+	direction_score_DIST={}
+	direction_score_DIST_z={}
+	direction_score_DIST_scale={}
+	scores_z=[]
+	scores_scale=[]
+	for direction in get_directions(corpus):
+		for phrase in direction:
+			hyp = phrase["hyp"]
+			ref = phrase["ref"]
+			sentences_score_bleu.append(compute_bleu_sentence(hyp, ref))
+			sentences_score_DIST.append(distance_edition(hyp,ref))
+		direction_score_bleu[(direction[0]["src_lang"],direction[0]["orig_lang"],direction[0]["tgt_lang"])]=sentences_score_bleu
+		direction_score_DIST[(direction[0]["src_lang"],direction[0]["orig_lang"],direction[0]["tgt_lang"])]=sentences_score_DIST
+
+
+	for k,v in direction_score_bleu.items():
+		direction_score_bleu_z[k]=to_z_score(v)	
+		direction_score_bleu_scale[k]=convert_scale(v, 1)
+	
+	for k,v in direction_score_DIST.items():
+		direction_score_DIST_z[k]=to_z_score(v)
+		direction_score_DIST_scale[k]=convert_scale(v,1)
+
+	scores_z=list()
+
+def compare_methode_corpus(corpus):
+	"""la fonction pour la comparaison entre Bleu score et la distance d'édition au niveu des directions entieres
+	"""
+	list_bleu_corpus=[]
+	list_DIST_corpus=[]
+
+	list_bleu_corpus_z=[]
+	list_DIST_corpus_z=[]
+	list_bleu_corpus_scale=[]
+	list_DIST_corpus_scale=[]
+
+	scores_z=[]
+	scores_scale=[]
+	for k,v in distance_edition_directions(corpus).items():
+		list_DIST_corpus.append([k,v])
+
+	for i in get_directions(corpus):
+		list_bleu_corpus.append([(i[0]["src_lang"],i[0]["orig_lang"],i[0]["tgt_lang"]),compute_bleu_corpus(i)])
+		
+	list_bleu_corpus=sorted(list_bleu_corpus,key=lambda x: x[0]) #on enumere les deux listes pour qu'ils soient alignés
+	list_DIST_corpus=sorted(list_DIST_corpus,key=lambda x: x[0])
+	
+	for i in range(len(list_bleu_corpus)): #calcule des scores ajoustés
+		list_bleu_corpus_z=to_z_score([i[1] for i in list_bleu_corpus])
+		list_DIST_corpus_z=to_z_score([i[1] for i in list_DIST_corpus])
+		list_bleu_corpus_scale=convert_scale([i[1] for i in list_bleu_corpus],1)
+		list_DIST_corpus_scale=convert_scale([i[1] for i in list_DIST_corpus],1)
+
+	
+	scores_z=list(zip(sorted(compute_directions (corpus).keys()),list_bleu_corpus_z,list_DIST_corpus_z)) #on assemble les noms de directions et les deux scores de direction
+	scores_scale=list(zip(sorted(compute_directions (corpus).keys()),list_bleu_corpus_scale,list_DIST_corpus_scale))
+
+	columns=
+	df2 = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
 
 def main():
 	json_file="da_newstest2016.json"
 	corpus = json.load(open(json_file))
-
+	print(compare_methode_corpus(corpus))
+	
 	#SCORE ENG
 
 	#print(score_eng(corpus))
+	
 	""" resultat:(scr:-0.22951067088406937, tgt:-0.03456279280542703)"""
-	
-	#DISTANCE D'EDITION
-	scores=distance_edition_directions(corpus)
-	valeurs=scores.values
-	
 
+	#score_DA = [elt["score"] for elt in corpus]
 
-	# TESTS de BLEU pour CORPUS
-	print("DE")
-	de_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["tgt_lang"] == "en"]
-	de_de_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["orig_lang"] == "de" and elt["tgt_lang"] == "en"]
-	de_en_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
-	print("Toute la direction DE : ", compute_bleu_corpus(de_en))
-	print("Direct : ", compute_bleu_corpus(de_de_en))
-	print("Indirect : ", compute_bleu_corpus(de_en_en))
-	print("CS")
-	cs_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["tgt_lang"] == "en"]
-	cs_cs_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["orig_lang"] == "cs" and elt["tgt_lang"] == "en"]
-	cs_en_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
-	print("Toute la direciton CS : ", compute_bleu_corpus(cs_en))
-	print("Direct : ", compute_bleu_corpus(cs_cs_en))
-	print("Indirect : ", compute_bleu_corpus(cs_en_en))
-
-	# TEST BLEU PHRASE par PHRASE
-	sentences_score_de = []
-	sentences_score_cs = []
-	sentences_score_ru = []
-	print("SENTENCE BLEU ")
-	
-
-
-	for sent in de_en:
-		hyp = sent["hyp"]
-		ref = sent["ref"]
-		sentences_score_de.append(compute_bleu_sentence(hyp, ref))
-	
-
-	score_DA_de = [elt["score"] for elt in de_en]
-	print(len(sentences_score_de))
-
-	print("DA score : ", score_DA_de[:3])
-
-	print("BLEU score : ", sentences_score_de[:3])
-	print("BLEU score to Z-SCORE : ", to_z_score(sentences_score_de[:3]))
-	print("BLEU score to new scale : ", convert_scale(sentences_score_de[:3], 1))
-	print("DA score to new scale : ", convert_scale(score_DA_de[:3], 4))
+	"""print("DA score : ", score_DA[:3])
+				print("BLEU score : ", sentences_score)
+				print("BLEU score to Z-SCORE : ", to_z_score(sentences_score))
+				print("BLEU score to new scale : ", convert_scale(sentences_score, 1))
+				print("DA score to new scale : ", convert_scale(score_DA, 4))"""
 
 
 
