@@ -258,6 +258,9 @@ def compare_methode_phrase(corpus):
 		direction_score_DA_z[k]=to_z_score(v)
 		direction_score_DA_scale[k]=convert_scale(v,1)
 
+	df1 = pd.DataFrame({'DA':list_DA_corpus_z,'Bleu':list_bleu_corpus_z,'Distance_edit':list_DIST_corpus_z}, index=columns)
+	ax=df1.plot.bar(rot=0);
+	plt.show()
 
 def compare_methode_corpus(corpus):
 	"""la fonction pour la comparaison entre Bleu score et la distance d'édition au niveu des directions entieres
@@ -291,9 +294,9 @@ def compare_methode_corpus(corpus):
 		list_DIST_corpus_z=to_z_score([i[1] for i in list_DIST_corpus])
 		list_DA_corpus_z=to_z_score([i[1] for i in list_DA_corpus])
 
-		list_bleu_corpus_scale=convert_scale([i[1] for i in list_bleu_corpus],2)
-		list_DIST_corpus_scale=convert_scale([i[1] for i in list_DIST_corpus],2)
-		list_DA_corpus_scale=convert_scale([i[1] for i in list_DA_corpus],2)
+		list_bleu_corpus_scale=convert_scale([i[1] for i in list_bleu_corpus],1)
+		list_DIST_corpus_scale=convert_scale([i[1] for i in list_DIST_corpus],1)
+		list_DA_corpus_scale=convert_scale([i[1] for i in list_DA_corpus],1)
 
 	scores_z=list(zip(sorted(compute_directions (corpus).keys()),list_DA_corpus_z,list_bleu_corpus_z,list_DIST_corpus_z)) #on assemble les noms de directions et les deux scores de direction
 	scores_scale=list(zip(sorted(compute_directions (corpus).keys()),list_DA_corpus_scale,list_bleu_corpus_scale,list_DIST_corpus_scale))
@@ -314,7 +317,11 @@ def main():
 	json_file="da_newstest2016.json"
 	corpus = json.load(open(json_file))
 	compare_methode_corpus(corpus)
+	"""
+	[(('cs', 'cs', 'en'), -1.1858783621173596, -0.20590678364696838, -0.2910927752246894), (('cs', 'en', 'en'), 1.3515052965610204, 0.5711734830982574, 0.9991951640195246), (('de', 'de', 'en'), -0.6429112695433022, 0.5009100943511744, 0.11804422414690613), (('de', 'en', 'en'), 1.2014997888333605, 1.6551547074642587, 1.488366938893235), (('en', 'en', 'ru'), -1.7554917817673616, -0.9695684294220609, -0.5953978616838416), (('en', 'ru', 'ru'), 1.627883445694669, -0.12114133603470499, 0.35145532551463576), (('fi', 'en', 'en'), 0.6103531192654893, -0.4008427798430632, -0.049138115530800386), (('fi', 'fi', 'en'), -0.8520313733217793, -0.9065129953685516, -0.6219144918460731), (('ro', 'en', 'en'), 0.5793914585047785, 0.5046778088694648, 0.3765311533289205), (('ro', 'ro', 'en'), -0.304173660907757, 1.823381711094755, 1.185681238597858), (('ru', 'en', 'en'), 0.43749431152828033, -0.13989576500675385, 0.30208600204591707), (('ru', 'ru', 'en'), -0.1275356765496593, 0.46555996564667274, 0.4677419043227074), (('tr', 'en', 'en'), -0.5029412256792026, -1.5153077072286891, -1.8826974892201216), (('tr', 'tr', 'en'), -0.4371640705011766, -1.2616819739737937, -1.8488612173641714)]
 	
+	[(('cs', 'cs', 'en'), 0.09060835471837525, 0.09612717528827569, 0.10281618209540655), (('cs', 'en', 'en'), 0.4942297419100713, 0.1531750432630048, 0.18616758118985577), (('de', 'de', 'en'), 0.1769780806187663, 0.1480167903820127, 0.12924605118253651), (('de', 'en', 'en'), 0.4703683794754412, 0.2327534606042746, 0.21776762222962676), (('en', 'en', 'ru'), 0.0, 0.040064409818740016, 0.08315835694144535), (('en', 'ru', 'ru'), 0.53819318888872, 0.10235006920431519, 0.1443241909306089), (('fi', 'en', 'en'), 0.37633473265633455, 0.08181632034777422, 0.11844622775383529), (('fi', 'fi', 'en'), 0.14371336478123165, 0.04469350443214526, 0.08144540733068895), (('ro', 'en', 'en'), 0.3714096641026473, 0.14829338996844432, 0.14594406605165855), (('ro', 'ro', 'en'), 0.23086104113357053, 0.2451035257180028, 0.19821440791354095), (('ru', 'en', 'en'), 0.3488380978732702, 0.10097324851573933, 0.1411349786173678), (('ru', 'ru', 'en'), 0.25895882919708124, 0.14542162800107777, 0.15183619561170136), (('tr', 'en', 'en'), 0.19924310273179446, 0.0, 0.0), (('tr', 'tr', 'en'), 0.20970626880747836, 0.018619450222717965, 0.0021857916466192506)]
+	"""
 	#SCORE ENG
 
 	#print(score_eng(corpus))
