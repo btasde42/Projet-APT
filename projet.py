@@ -291,9 +291,9 @@ def compare_methode_corpus(corpus):
 		list_DIST_corpus_z=to_z_score([i[1] for i in list_DIST_corpus])
 		list_DA_corpus_z=to_z_score([i[1] for i in list_DA_corpus])
 
-		list_bleu_corpus_scale=convert_scale([i[1] for i in list_bleu_corpus],1)
-		list_DIST_corpus_scale=convert_scale([i[1] for i in list_DIST_corpus],1)
-		list_DA_corpus_scale=convert_scale([i[1] for i in list_DA_corpus],1)
+		list_bleu_corpus_scale=convert_scale([i[1] for i in list_bleu_corpus],2)
+		list_DIST_corpus_scale=convert_scale([i[1] for i in list_DIST_corpus],2)
+		list_DA_corpus_scale=convert_scale([i[1] for i in list_DA_corpus],2)
 
 	scores_z=list(zip(sorted(compute_directions (corpus).keys()),list_DA_corpus_z,list_bleu_corpus_z,list_DIST_corpus_z)) #on assemble les noms de directions et les deux scores de direction
 	scores_scale=list(zip(sorted(compute_directions (corpus).keys()),list_DA_corpus_scale,list_bleu_corpus_scale,list_DIST_corpus_scale))
