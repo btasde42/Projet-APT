@@ -220,7 +220,9 @@ def compare_methode_phrase(corpus):
 	"""la fonction pour la comparaison entre Bleu score et la distance d'édition au niveu de phrase
 	"""
 	sentences_score_bleu=[]
+	sentences_score_DA=[]
 	sentences_score_DIST=[]
+
 	direction_score_bleu={}
 	direction_score_bleu_z={}
 	direction_score_bleu_scale={}
@@ -228,17 +230,21 @@ def compare_methode_phrase(corpus):
 	direction_score_DIST={}
 	direction_score_DIST_z={}
 	direction_score_DIST_scale={}
-	scores_z=[]
-	scores_scale=[]
+	
+	direction_score_DA={}
+	direction_score_DA_z={}
+	direction_score_DA_scale={}
 	for direction in get_directions(corpus):
 		for phrase in direction:
+			score=phrase['score'] #on compte en meme temps le DA pour la comparaison
 			hyp = phrase["hyp"]
 			ref = phrase["ref"]
 			sentences_score_bleu.append(compute_bleu_sentence(hyp, ref))
 			sentences_score_DIST.append(distance_edition(hyp,ref))
+			sentences_score_DA.append(score)
 		direction_score_bleu[(direction[0]["src_lang"],direction[0]["orig_lang"],direction[0]["tgt_lang"])]=sentences_score_bleu
 		direction_score_DIST[(direction[0]["src_lang"],direction[0]["orig_lang"],direction[0]["tgt_lang"])]=sentences_score_DIST
-
+		direction_score_DA[(direction[0]["src_lang"],direction[0]["orig_lang"],direction[0]["tgt_lang"])]=sentences_score_DA
 
 	for k,v in direction_score_bleu.items():
 		direction_score_bleu_z[k]=to_z_score(v)	
@@ -248,7 +254,12 @@ def compare_methode_phrase(corpus):
 		direction_score_DIST_z[k]=to_z_score(v)
 		direction_score_DIST_scale[k]=convert_scale(v,1)
 
-	scores_z=list()
+	for k,v in direction_score_DA.items():
+		direction_score_DA_z[k]=to_z_score(v)
+		direction_score_DA_scale[k]=convert_scale(v,1)
+
+
+
 
 def compare_methode_corpus(corpus):
 	"""la fonction pour la comparaison entre Bleu score et la distance d'édition au niveu des directions entieres
@@ -295,14 +306,6 @@ def main():
 	#print(score_eng(corpus))
 	
 	""" resultat:(scr:-0.22951067088406937, tgt:-0.03456279280542703)"""
-
-	#score_DA = [elt["score"] for elt in corpus]
-
-	"""print("DA score : ", score_DA[:3])
-				print("BLEU score : ", sentences_score)
-				print("BLEU score to Z-SCORE : ", to_z_score(sentences_score))
-				print("BLEU score to new scale : ", convert_scale(sentences_score, 1))
-				print("DA score to new scale : ", convert_scale(score_DA, 4))"""
 
 
 
