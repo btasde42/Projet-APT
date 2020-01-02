@@ -258,10 +258,14 @@ def compare_methode_phrase(corpus):
 		direction_score_DA_z[k]=to_z_score(v)
 		direction_score_DA_scale[k]=convert_scale(v,1)
 
-	df1 = pd.DataFrame({'DA':list_DA_corpus_z,'Bleu':list_bleu_corpus_z,'Distance_edit':list_DIST_corpus_z}, index=columns)
-	ax=df1.plot.bar(rot=0);
+	
+	fig, ax = plt.subplots(len(direction_score_DA_z), 1, figsize=(7,5))
+	for a,key in zip(ax,direction_score_DA_z.keys() ):
+		y = direction_score_DA_z[key]
+		n = len(y)
+		x = np.linspace(1,n,n)
+		a.plot(x,y)
 	plt.show()
-
 def compare_methode_corpus(corpus):
 	"""la fonction pour la comparaison entre Bleu score et la distance d'édition au niveu des directions entieres
 	"""
@@ -316,7 +320,7 @@ def compare_methode_corpus(corpus):
 def main():
 	json_file="da_newstest2016.json"
 	corpus = json.load(open(json_file))
-	compare_methode_corpus(corpus)
+	compare_methode_phrase(corpus)
 	"""
 	[(('cs', 'cs', 'en'), -1.1858783621173596, -0.20590678364696838, -0.2910927752246894), (('cs', 'en', 'en'), 1.3515052965610204, 0.5711734830982574, 0.9991951640195246), (('de', 'de', 'en'), -0.6429112695433022, 0.5009100943511744, 0.11804422414690613), (('de', 'en', 'en'), 1.2014997888333605, 1.6551547074642587, 1.488366938893235), (('en', 'en', 'ru'), -1.7554917817673616, -0.9695684294220609, -0.5953978616838416), (('en', 'ru', 'ru'), 1.627883445694669, -0.12114133603470499, 0.35145532551463576), (('fi', 'en', 'en'), 0.6103531192654893, -0.4008427798430632, -0.049138115530800386), (('fi', 'fi', 'en'), -0.8520313733217793, -0.9065129953685516, -0.6219144918460731), (('ro', 'en', 'en'), 0.5793914585047785, 0.5046778088694648, 0.3765311533289205), (('ro', 'ro', 'en'), -0.304173660907757, 1.823381711094755, 1.185681238597858), (('ru', 'en', 'en'), 0.43749431152828033, -0.13989576500675385, 0.30208600204591707), (('ru', 'ru', 'en'), -0.1275356765496593, 0.46555996564667274, 0.4677419043227074), (('tr', 'en', 'en'), -0.5029412256792026, -1.5153077072286891, -1.8826974892201216), (('tr', 'tr', 'en'), -0.4371640705011766, -1.2616819739737937, -1.8488612173641714)]
 	
