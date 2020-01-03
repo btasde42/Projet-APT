@@ -11,22 +11,24 @@ def compute_ngrams (sentence, n): # OK
 	return list(ngrams)
 
 
-def proba_n_gram(l,n):
+def proba_n_gram(l,n,smooth=1e-4):
     """
-    Cette fonction renvoie des probablites pour n-grams
+    Cette fonction renvoie des probablites pour n-grams avec smoothing
     Renvoie une dictionnaire
     """
-
+    total_count=0
     dict_model= defaultdict(lambda: Counter()) #on crée une dict de dict, le couche interieur est un counter
     for i in compute_ngrams(l,n):
     	dict_model[i[:n-1]][i[-1]]+=1
-    
+    	total_count+=1
+
     for key, value in dict_model.items():
     	somme=float(sum(value.values()))
     	for w3 in dict_model[key]:
-    		dict_model[key][w3] /= somme
+    		dict_model[key][w3] = (somme+smooth)/(total_count+len(dict_model.keys())*smooth)
 
     return dict_model
+
 
 def main():
 	#corpus_eng=open('corpus.tc.en').read()
