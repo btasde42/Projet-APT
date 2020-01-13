@@ -100,6 +100,28 @@ def compute_lexical_richness (direction, nlp):
 	print(all_tokens)
 	return all_tokens["lemmas"]/all_tokens["tokens"]
 
+def lexical_richness_to_graph(directions):
+	de_direct = compute_lexical_richness(directions[0], German())
+	de_indirect = compute_lexical_richness(directions[1], German())
+	cs_direct = compute_lexical_richness(directions[2], Czech())
+	cs_indirect = compute_lexical_richness(directions[3], Czech())
+	tr_direct = compute_lexical_richness(directions[4], Turkish())
+	tr_indirect = compute_lexical_richness(directions[5], Turkish())
+	ro_direct = compute_lexical_richness(directions[6], Romanian())
+	ro_indirect = compute_lexical_richness(directions[7], Romanian())
+	ru_direct = compute_lexical_richness(directions[8], Russian())
+	ru_indirect = compute_lexical_richness(directions[9], Russian())
+	fi_direct = compute_lexical_richness(directions[10], Finnish())
+	fi_indirect = compute_lexical_richness(directions[11], Finnish())
+	en_direct = compute_lexical_richness(directions[12], English())
+	en_indirect = compute_lexical_richness(directions[13], English())
+	direct = [de_direct, cs_direct, tr_direct, ro_direct, ru_direct, fi_direct, en_direct]
+	indirect = [de_indirect, cs_indirect, tr_indirect, ro_indirect, ru_indirect, fi_indirect, en_indirect]
+	labels = ['de', 'cs', 'tr', 'ro', 'ru', 'fi', 'en']
+	df = pd.DataFrame({'direct' : direct, 'indirect' : indirect}, index = labels) 
+	ax = df.plot.bar(rot=0)
+	plt.show()
+
 def compare_lexical_richness(directions):
 	"""la fonction qui met en évidence les différence de la richersse lexicale entre la direction directe et indirecte pour chaque langue;
 	prend en argument la liste des directions obtenue avec la fonction get_directions(corpus)
