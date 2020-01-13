@@ -3,6 +3,7 @@ import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 from itertools import islice
+import statistics
 import math
 import numpy as np
 import pandas as pd
@@ -21,6 +22,10 @@ def compute_directions (corpus):
 	return dico
 
 def get_directions (corpus):
+	"""args : le corpus entier
+	return : liste des directions (une direction = une liste de dictionnaires, dont les clés sont : 
+	src, hyp, réf, score)
+	"""
 	de_de_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["orig_lang"] == "de" and elt["tgt_lang"] == "en"]
 	de_en_en = [elt for elt in corpus if elt["src_lang"] == "de" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
 	cs_cs_en = [elt for elt in corpus if elt["src_lang"] == "cs" and elt["orig_lang"] == "cs" and elt["tgt_lang"] == "en"]
@@ -33,9 +38,13 @@ def get_directions (corpus):
 	ru_ru_en = [elt for elt in corpus if elt["src_lang"] == "ru" and elt["orig_lang"] == "ru" and elt["tgt_lang"] == "en"]
 	fi_fi_en = [elt for elt in corpus if elt["src_lang"] == "fi" and elt["orig_lang"] == "fi" and elt["tgt_lang"] == "en"]
 	fi_en_en = [elt for elt in corpus if elt["src_lang"] == "fi" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "en"]
+	en =[elt for elt in corpus if elt["src_lang"] == "en" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "ru"]
+	en_en_ru = []
+	[en_en_ru.append(elt) for elt in en if elt not in en_en_ru]
+	print(len(en_en_ru))
+	#en_en_ru = [elt for elt in corpus if elt["src_lang"] == "en" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "ru"]
 	en_ru_ru = [elt for elt in corpus if elt["src_lang"] == "en" and elt["orig_lang"] == "ru" and elt["tgt_lang"] == "ru"]
-	en_en_ru = [elt for elt in corpus if elt["src_lang"] == "en" and elt["orig_lang"] == "en" and elt["tgt_lang"] == "ru"]
-	return [de_de_en, de_en_en, cs_cs_en, cs_en_en, tr_tr_en, tr_en_en, ro_ro_en, ro_en_en, ru_ru_en, ru_en_en, fi_fi_en, fi_en_en, en_ru_ru,en_en_ru]
+	return [de_de_en, de_en_en, cs_cs_en, cs_en_en, tr_tr_en, tr_en_en, ro_ro_en, ro_en_en, ru_ru_en, ru_en_en, fi_fi_en, fi_en_en, en_en_ru, en_ru_ru]
 
 def direct(corpus):
 	"""la fonction qui renvoie la liste des phrases issues de la traduction directe"""
@@ -258,14 +267,12 @@ def compare_methode_phrase(corpus):
 		direction_score_DA_z[k]=to_z_score(v)
 		direction_score_DA_scale[k]=convert_scale(v,1)
 
-	
-	fig, ax = plt.subplots(len(direction_score_DA_z), 1, figsize=(7,5))
-	for a,key in zip(ax,direction_score_DA_z.keys() ):
-		y = direction_score_DA_z[key]
-		n = len(y)
-		x = np.linspace(1,n,n)
-		a.plot(x,y)
+	directions=compute_directions(corpus).keys()
+
+	df1 = pd.DataFrame({'DA':statistics.mean(direction_score_DA_z[directions[0]]),'Bleu':statistics.mean(direction_score_bleu_z[directions[0]]),'Distance_edit':statistics.mean(direction_score_DIST_z[directions[0]])})
+	ax=df1.plot.bar(rot=0);
 	plt.show()
+
 def compare_methode_corpus(corpus):
 	"""la fonction pour la comparaison entre Bleu score et la distance d'édition au niveu des directions entieres
 	"""
