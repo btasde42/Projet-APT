@@ -40,6 +40,16 @@ def get_directions (corpus):
 	en_ru_ru = [elt for elt in corpus if elt["src_lang"] == "en" and elt["orig_lang"] == "ru" and elt["tgt_lang"] == "ru"]
 	return [de_de_en, de_en_en, cs_cs_en, cs_en_en, tr_tr_en, tr_en_en, ro_ro_en, ro_en_en, ru_ru_en, ru_en_en, fi_fi_en, fi_en_en, en_en_ru, en_ru_ru]
 
+def directions_to_graph(directions):
+	lengths = [len(direction) for direction in directions]
+	lengths_direct = [lengths[i] for i in range(len(lengths)) if i%2==0]
+	lengths_indirect = [lengths[i] for i in range(len(lengths)) if i%2!=0]
+	labels = ['de', 'cs', 'tr', 'ro', 'ru', 'fi', 'en']
+	df = pd.DataFrame({'direct' :lengths_direct, 'indirect' : lengths_indirect}, index = labels) 
+	ax = df.plot.bar(rot=0)
+	plt.legend()
+	plt.show()
+	
 def compare_length(directions):
 	"""la fonction qui compare la longueur des phrases sources issues de la traduction et écrites par un locuteru natif
 	args : directions
@@ -49,6 +59,20 @@ def compare_length(directions):
 	for direction in directions:
 		length = [len(phrase['src'].split()) for phrase in direction]
 		print(mean(length))
+
+def compare_length_to_graph(directions):
+	"""la fonction qui compare la longueur des phrases sources issues de la traduction et écrites par un locuteru natif
+	args : directions
+	return : None (affiche des résultats)
+	"""
+	lengths = [mean([len(phrase['src'].split()) for phrase in direction]) for direction in directions]
+	lengths_direct = [lengths[i] for i in range(len(lengths)) if i%2==0]
+	lengths_indirect = [lengths[i] for i in range(len(lengths)) if i%2!=0]
+	labels = ['de', 'cs', 'tr', 'ro', 'ru', 'fi', 'en']
+	df = pd.DataFrame({'direct' :lengths_direct, 'indirect' : lengths_indirect}, index = labels) 
+	ax = df.plot.bar(rot=0)
+	plt.legend()
+	plt.show()
 
 def compare_heights(direction_direct, direction_indirect, nlp):
 	"""la fonction qui compare la profondeur des arbres de dépendance des phrases sources issues de la traduction et écrites par un locuteur natif
@@ -120,6 +144,7 @@ def lexical_richness_to_graph(directions):
 	labels = ['de', 'cs', 'tr', 'ro', 'ru', 'fi', 'en']
 	df = pd.DataFrame({'direct' : direct, 'indirect' : indirect}, index = labels) 
 	ax = df.plot.bar(rot=0)
+	plt.title('richesse lexicale')
 	plt.show()
 
 def compare_lexical_richness(directions):
