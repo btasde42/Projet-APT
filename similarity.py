@@ -13,6 +13,7 @@ import seaborn as sns
 from statistics import mean
 from collections import defaultdict, Counter, OrderedDict
 from itertools import chain
+import pandas as pd
 
 
 def get_directions (corpus):
@@ -219,8 +220,14 @@ def pos_position(direction, nlp): # CORRECT !
 		for elt in value:
 			positions[key][elt] = positions[key][elt]/len(direction)
 		positions[key] = list(OrderedDict(sorted(value.items(), key=lambda x: float(x[1]), reverse = True)).items())[:3] # y a-t-il moyen de faire plus simple?
-	print(positions)
-	return positions
+	# NOUVEAU AJOUT
+	# MODIFICATION DES VALEURS
+	new_positions = defaultdict(lambda : defaultdict(float))
+	for key, value in positions.items():
+		for i in range(len(value)):
+			new_positions[key][positions[key][i][0]] = positions[key][i][1]
+	print(new_positions)
+	return new_positions
 
 def positionnal_token_frequency(direction_directe, direction_indirecte, nlp): # CORRECT  ! 
 	"""la fonction qui met en évidence la fréquence de l'apparition des tokens aux positions initiales (1 ou 2 mot de la phrase) 
@@ -265,9 +272,10 @@ def dict_to_graph(D):
 	plt.show()
 
 
-def dict_of_dict_to_graph(dictt):
+def dict_of_dict_to_graph(dictt, name):
 	"""Transfome une dictionnaire de dictionnaire en graph, l'axis X est le deuxième clé et axis y=valeir """
 	pd.DataFrame(dictt).T.plot(kind='bar')
+	plt.title(name)
 	plt.show()
 
 def main():
@@ -292,20 +300,23 @@ def main():
 
 	#print("COMPARAISON DES TRIGRAMMES DE POS : ")
 	#print(pos_trigrams(en_en, nlp_en))
-	dict_to_graph(pos_trigram(de_de, de_en, nlp_de))
-
+	#dict_to_graph(pos_trigram(de_de, de_en, nlp_de))
+	#dict_of_dict_to_graph(dependent_head_relation_position_direction(de_de, nlp_de).keys[:10])
 	#print("Positionnal token frequency")
 	#positionnal_token_frequency(en_en, en_ru, nlp_en)
 	#positionnal_token_frequency(de_de, de_en, nlp_de)
-
+	#print(pos_position(de_de, nlp_de))
+	dict_of_dict_to_graph(pos_position(de_de, nlp_de), "DE_DE positional frequency")
+	dict_of_dict_to_graph(pos_position(de_en, nlp_de), "DE_EN positional frequency")
+	dict_of_dict_to_graph(pos_position(en_en, nlp_en), "EN_EN positional frequency")
+	dict_of_dict_to_graph(pos_position(en_ru, nlp_de), 'EN_RU positional frequency')
+	
+	
+	#print(dependent_head_relation_position_direction(de_de, nlp_de))
 
 
 	#print(pos_trigrams(phrase, spacy.load("en_core_web_sm")))
 
 
 if __name__ == '__main__':
-
-    main()
-
-
-	#print(dependent_head_relation_position_direction(de_de, nlp_de))
+	main()
