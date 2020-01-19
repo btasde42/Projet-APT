@@ -33,9 +33,7 @@ def proba_n_gram(l,n,MINPROBA=1e-18):
 
 
 def calculate_proba_sentence(lang_model,p,n):
-    """
-    Cette fonction sert à calculer la probabilité d'une phrase donné par rapport au model de langage crée
-    """
+
     ngrams_p = list(zip(*[p.split()[i:] for i in range(n)]))
     produit=1
     for (a,b) in ngrams_p:
@@ -44,8 +42,10 @@ def calculate_proba_sentence(lang_model,p,n):
         else:
             produit*=produit #on evite l'abscence du ngram dans la modèle
         
-    
-    return produit/len(ngrams_p)
+    if len(ngrams_p)!=0:
+        return produit/len(ngrams_p)
+    else:
+        return MINPROBA
 
 def direct(corpus,lang):
     """la fonction qui renvoie la liste des phrases issues de la traduction directe d'une certaine langue"""
@@ -62,35 +62,41 @@ def main1():
     #CREATION ET EXTRACTION DES MODELS DE LANGUES EN ET DE
 
     #corpus_eng=open('corpus.tc.en').readlines()
-    corpus_de=open('corpus.tc.de').readlines()
+    #corpus_de=open('corpus.tc.de').readlines()
 
-    #json_file='da_newstest2016.json'
-    #corpus = json.load(open(json_file))
+    json_file='da_newstest2016.json'
+    corpus = json.load(open(json_file))
     #dict_en=proba_n_gram(corpus_eng,2)
 
     #pickle_out_en = open('en_lang_mod.pickle','wb')
     #pickle.dump(dict_en, pickle_out_en)
     #pickle_out_en.close()
 
-    dict_de=proba_n_gram(corpus_de,2)
-    pickle_out_de = open('de_lang_mod.pickle','wb')
-    pickle.dump(dict_de, pickle_out_de)
-    pickle_out_de.close()
+    #dict_de=proba_n_gram(corpus_de,2)
+    #pickle_out_de = open('de_lang_mod.pickle','wb')
+    #pickle.dump(dict_de, pickle_out_de)
+    #pickle_out_de.close()
 
-    #with open('en_lang_mod.pickle', 'rb') as handle:
-        #lang_mod_eng = pickle.load(handle)
+    with open('de_lang_mod.pickle', 'rb') as handle:
+        lang_mod_de = pickle.load(handle)
     #print(lang_mod_eng)
     #lang_mod_de='de_lang_mod.pickle'
 
-    #phrases_eng_direct=direct(corpus,'en')
-    #phrases_eng_indirect=indirect(corpus,'en')
+    phrases_de_direct=direct(corpus,'de')
+    phrases_de_indirect=indirect(corpus,'de')
     
-    #val_en_direct=[]
-    #for i in phrases_eng_direct:
-        #calculate_proba_sentence(lang_mod_eng,i['src'],2)
-        #val_en_direct.append(calculate_proba_sentence(lang_mod_eng,i['src'],2))
+    val_de_direct=[]
+    val_de_indirect=[]
+    for i in phrases_de_direct:
+        calculate_proba_sentence(lang_mod_de,i['src'],2)
+        val_de_direct.append(calculate_proba_sentence(lang_mod_de,i['src'],2))
             
-    #print(val_en_direct)
+    for i in phrases_de_indirect:
+        calculate_proba_sentence(lang_mod_de,i['src'],2)
+        val_de_indirect.append(calculate_proba_sentence(lang_mod_de,i['src'],2))
+            
+    print(sum(val_de_direct)/len(val_de_direct))
+    print(sum(val_de_indirect)/len(val_de_indirect))
 
 if __name__ == '__main__':
 

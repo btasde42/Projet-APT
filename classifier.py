@@ -1,6 +1,6 @@
 import numpy as np
 import json
-from similarity import*
+from methodes_in_direct import*
 from language_model import*
 
 def get_directions(corpus):
@@ -73,10 +73,11 @@ def main():
 	nlp_en = spacy.load("en_core_web_sm")
 	with open('en_lang_mod.pickle', 'rb') as handle:
 		lang_mod_eng = pickle.load(handle)
-		
+
 	data=data_prepare(corpus,get_directions(corpus)[1],1,lang_mod_eng,nlp_en)
 	train,test=data[:len(data)//2], data[len(data)//2:] #on divise en deux le data pour en extraire train et test
 	w=np.ones(len(test[0][1]))
-	
+	print(len(data))
 
-
+if __name__ == '__main__':
+	main()
