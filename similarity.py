@@ -2,7 +2,7 @@ import spacy
 from spacy import displacy
 from spacy.lang.fi import Finnish
 from spacy.lang.de import German
-from spacy.lang.cs import Czech
+#from spacy.lang.cs import Czech
 from spacy.lang.tr import Turkish
 from spacy.lang.ro import Romanian
 from spacy.lang.ru import Russian
@@ -125,6 +125,24 @@ def compute_lexical_richness (direction, nlp):
 	print(all_tokens)
 	return all_tokens["lemmas"]/all_tokens["tokens"]
 
+def compute_lexical_richness_phrase (phrase, nlp):
+	"""la fonction qui calcule la richesse lexicale de la phrase;
+	retourne le nombre de tokens uniques/nombre de tokens tota
+	args : direction (dictionnaire), le modèle de langue de Spacy (ex. German())
+	return : int """
+	lemmas = defaultdict(int)
+	tokens = defaultdict(int)
+	all_tokens = defaultdict(int)
+	doc = nlp(phrase)
+	for token in doc:
+		lemmas[token.lemma_] +=1
+		tokens[token] +=1
+			#print("LEMMAS : ", len(lemmas))
+			#print("TOKENS : ", sum(tokens.values()))
+	all_tokens["lemmas"]+=len(lemmas)
+	all_tokens["tokens"]+=sum(tokens.values())
+	return all_tokens["lemmas"]/all_tokens["tokens"]
+
 def lexical_richness_to_graph(directions):
 	de_direct = compute_lexical_richness(directions[0], German())
 	de_indirect = compute_lexical_richness(directions[1], German())
@@ -193,6 +211,7 @@ def pos_trigrams(direction, nlp) : # CORRECT!
 		all_trigrams[trigram] = all_trigrams[trigram]/sum(all_trigrams.values())
 	return all_trigrams
 
+
 def pos_position(direction, nlp): # CORRECT !
 	"""la fonction qui analyse la fréquence de l'apparition des tokens aux positions initiales (1 ou 2 mot de la phrase) 
 	ou finales (le dernier ou l'avant dernier mot dechaque position
@@ -226,7 +245,7 @@ def pos_position(direction, nlp): # CORRECT !
 	for key, value in positions.items():
 		for i in range(len(value)):
 			new_positions[key][positions[key][i][0]] = positions[key][i][1]
-	print(new_positions)
+	#print(new_positions)
 	return new_positions
 
 def positionnal_token_frequency(direction_directe, direction_indirecte, nlp): # CORRECT  ! 
@@ -303,13 +322,13 @@ def main():
 	#dict_to_graph(pos_trigram(de_de, de_en, nlp_de))
 	#dict_of_dict_to_graph(dependent_head_relation_position_direction(de_de, nlp_de).keys[:10])
 	#print("Positionnal token frequency")
-	#positionnal_token_frequency(en_en, en_ru, nlp_en)
-	#positionnal_token_frequency(de_de, de_en, nlp_de)
+	positionnal_token_frequency(en_en, en_ru, nlp_en)
+	positionnal_token_frequency(de_de, de_en, nlp_de)
 	#print(pos_position(de_de, nlp_de))
-	dict_of_dict_to_graph(pos_position(de_de, nlp_de), "DE_DE positional frequency")
-	dict_of_dict_to_graph(pos_position(de_en, nlp_de), "DE_EN positional frequency")
-	dict_of_dict_to_graph(pos_position(en_en, nlp_en), "EN_EN positional frequency")
-	dict_of_dict_to_graph(pos_position(en_ru, nlp_de), 'EN_RU positional frequency')
+	#dict_of_dict_to_graph(pos_position(de_de, nlp_de), "DE_DE positional frequency")
+	#dict_of_dict_to_graph(pos_position(de_en, nlp_de), "DE_EN positional frequency")
+	#dict_of_dict_to_graph(pos_position(en_en, nlp_en), "EN_EN positional frequency")
+	#dict_of_dict_to_graph(pos_position(en_ru, nlp_de), 'EN_RU positional frequency')
 	
 	
 	#print(dependent_head_relation_position_direction(de_de, nlp_de))
