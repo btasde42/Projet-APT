@@ -15,7 +15,7 @@ from collections import defaultdict, Counter, OrderedDict
 from itertools import chain
 
 
-def get_directions (corpus):
+def get_directions(corpus):
 	"""args : le corpus entier
 	return : liste des directions (une direction = une liste de dictionnaires, dont les clés sont : 
 	src, hyp, réf, score)
