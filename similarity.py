@@ -13,6 +13,7 @@ import seaborn as sns
 from statistics import mean
 from collections import defaultdict, Counter, OrderedDict
 from itertools import chain
+import pandas as pd
 
 
 def get_directions(corpus):
@@ -40,6 +41,16 @@ def get_directions(corpus):
 	en_ru_ru = [elt for elt in corpus if elt["src_lang"] == "en" and elt["orig_lang"] == "ru" and elt["tgt_lang"] == "ru"]
 	return [de_de_en, de_en_en, cs_cs_en, cs_en_en, tr_tr_en, tr_en_en, ro_ro_en, ro_en_en, ru_ru_en, ru_en_en, fi_fi_en, fi_en_en, en_en_ru, en_ru_ru]
 
+def directions_to_graph(directions):
+	lengths = [len(direction) for direction in directions]
+	lengths_direct = [lengths[i] for i in range(len(lengths)) if i%2==0]
+	lengths_indirect = [lengths[i] for i in range(len(lengths)) if i%2!=0]
+	labels = ['de', 'cs', 'tr', 'ro', 'ru', 'fi', 'en']
+	df = pd.DataFrame({'direct' :lengths_direct, 'indirect' : lengths_indirect}, index = labels) 
+	ax = df.plot.bar(rot=0)
+	plt.legend()
+	plt.show()
+	
 def compare_length(directions):
 	"""la fonction qui compare la longueur des phrases sources issues de la traduction et écrites par un locuteru natif
 	args : directions
@@ -49,6 +60,20 @@ def compare_length(directions):
 	for direction in directions:
 		length = [len(phrase['src'].split()) for phrase in direction]
 		print(mean(length))
+
+def compare_length_to_graph(directions):
+	"""la fonction qui compare la longueur des phrases sources issues de la traduction et écrites par un locuteru natif
+	args : directions
+	return : None (affiche des résultats)
+	"""
+	lengths = [mean([len(phrase['src'].split()) for phrase in direction]) for direction in directions]
+	lengths_direct = [lengths[i] for i in range(len(lengths)) if i%2==0]
+	lengths_indirect = [lengths[i] for i in range(len(lengths)) if i%2!=0]
+	labels = ['de', 'cs', 'tr', 'ro', 'ru', 'fi', 'en']
+	df = pd.DataFrame({'direct' :lengths_direct, 'indirect' : lengths_indirect}, index = labels) 
+	ax = df.plot.bar(rot=0)
+	plt.legend()
+	plt.show()
 
 def compare_heights(direction_direct, direction_indirect, nlp):
 	"""la fonction qui compare la profondeur des arbres de dépendance des phrases sources issues de la traduction et écrites par un locuteur natif
@@ -99,6 +124,29 @@ def compute_lexical_richness (direction, nlp):
 	tokens = defaultdict(int)
 	print(all_tokens)
 	return all_tokens["lemmas"]/all_tokens["tokens"]
+
+def lexical_richness_to_graph(directions):
+	de_direct = compute_lexical_richness(directions[0], German())
+	de_indirect = compute_lexical_richness(directions[1], German())
+	cs_direct = compute_lexical_richness(directions[2], Czech())
+	cs_indirect = compute_lexical_richness(directions[3], Czech())
+	tr_direct = compute_lexical_richness(directions[4], Turkish())
+	tr_indirect = compute_lexical_richness(directions[5], Turkish())
+	ro_direct = compute_lexical_richness(directions[6], Romanian())
+	ro_indirect = compute_lexical_richness(directions[7], Romanian())
+	ru_direct = compute_lexical_richness(directions[8], Russian())
+	ru_indirect = compute_lexical_richness(directions[9], Russian())
+	fi_direct = compute_lexical_richness(directions[10], Finnish())
+	fi_indirect = compute_lexical_richness(directions[11], Finnish())
+	en_direct = compute_lexical_richness(directions[12], English())
+	en_indirect = compute_lexical_richness(directions[13], English())
+	direct = [de_direct, cs_direct, tr_direct, ro_direct, ru_direct, fi_direct, en_direct]
+	indirect = [de_indirect, cs_indirect, tr_indirect, ro_indirect, ru_indirect, fi_indirect, en_indirect]
+	labels = ['de', 'cs', 'tr', 'ro', 'ru', 'fi', 'en']
+	df = pd.DataFrame({'direct' : direct, 'indirect' : indirect}, index = labels) 
+	ax = df.plot.bar(rot=0)
+	plt.title('richesse lexicale')
+	plt.show()
 
 def compare_lexical_richness(directions):
 	"""la fonction qui met en évidence les différence de la richersse lexicale entre la direction directe et indirecte pour chaque langue;
@@ -172,8 +220,14 @@ def pos_position(direction, nlp): # CORRECT !
 		for elt in value:
 			positions[key][elt] = positions[key][elt]/len(direction)
 		positions[key] = list(OrderedDict(sorted(value.items(), key=lambda x: float(x[1]), reverse = True)).items())[:3] # y a-t-il moyen de faire plus simple?
-	print(positions)
-	return positions
+	# NOUVEAU AJOUT
+	# MODIFICATION DES VALEURS
+	new_positions = defaultdict(lambda : defaultdict(float))
+	for key, value in positions.items():
+		for i in range(len(value)):
+			new_positions[key][positions[key][i][0]] = positions[key][i][1]
+	print(new_positions)
+	return new_positions
 
 def positionnal_token_frequency(direction_directe, direction_indirecte, nlp): # CORRECT  ! 
 	"""la fonction qui met en évidence la fréquence de l'apparition des tokens aux positions initiales (1 ou 2 mot de la phrase) 
@@ -218,9 +272,10 @@ def dict_to_graph(D):
 	plt.show()
 
 
-def dict_of_dict_to_graph(dictt):
+def dict_of_dict_to_graph(dictt, name):
 	"""Transfome une dictionnaire de dictionnaire en graph, l'axis X est le deuxième clé et axis y=valeir """
 	pd.DataFrame(dictt).T.plot(kind='bar')
+	plt.title(name)
 	plt.show()
 
 def main():
@@ -245,20 +300,23 @@ def main():
 
 	#print("COMPARAISON DES TRIGRAMMES DE POS : ")
 	#print(pos_trigrams(en_en, nlp_en))
-	dict_to_graph(pos_trigram(de_de, de_en, nlp_de))
-
+	#dict_to_graph(pos_trigram(de_de, de_en, nlp_de))
+	#dict_of_dict_to_graph(dependent_head_relation_position_direction(de_de, nlp_de).keys[:10])
 	#print("Positionnal token frequency")
 	#positionnal_token_frequency(en_en, en_ru, nlp_en)
 	#positionnal_token_frequency(de_de, de_en, nlp_de)
-
+	#print(pos_position(de_de, nlp_de))
+	dict_of_dict_to_graph(pos_position(de_de, nlp_de), "DE_DE positional frequency")
+	dict_of_dict_to_graph(pos_position(de_en, nlp_de), "DE_EN positional frequency")
+	dict_of_dict_to_graph(pos_position(en_en, nlp_en), "EN_EN positional frequency")
+	dict_of_dict_to_graph(pos_position(en_ru, nlp_de), 'EN_RU positional frequency')
+	
+	
+	#print(dependent_head_relation_position_direction(de_de, nlp_de))
 
 
 	#print(pos_trigrams(phrase, spacy.load("en_core_web_sm")))
 
 
 if __name__ == '__main__':
-
-    main()
-
-
-	#print(dependent_head_relation_position_direction(de_de, nlp_de))
+	main()
